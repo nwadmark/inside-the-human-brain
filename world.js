@@ -1,5 +1,5 @@
-import * as THREE from './assets/three.module.js';
-import {OrbitControls} from './assets/OrbitControls.js?v=3';
+import * as THREE from '/inside-the-human-brain/assets/three.module.js';
+import {OrbitControls} from '/inside-the-human-brain/assets/OrbitControls.js?v=4';
 import {STRUCTURES, NETWORKS, EXPERIENCES} from './content.js';
 
 const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
