@@ -1,4 +1,4 @@
-import {BrainWorld} from './world.js?v=3';
+import {BrainWorld} from './world.js?v=4';
 import {Soundscape} from './audio.js';
 import {CHAPTERS,STRUCTURES,SOURCES,TRANSMITTERS,NETWORKS,EXPERIENCES,WHATIFS,SURPRISES,SEARCH_SYSTEMS} from './content.js';
 
