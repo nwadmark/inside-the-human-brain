@@ -6,9 +6,14 @@ This interactive learning experience turns neuroscience into an explorable story
 
 ## Live experience
 
-[Enter the interactive brain](https://nwadmark.github.io/inside-the-human-brain/)
+**Recommended: open the fully working visual experience here:**
 
-This is designed to be experienced, not skimmed: start the journey, then use **Explore** to take control of the model.
+[Enter Inside the Human Brain](https://inside-the-human-brain.wadmark-llc-6214.chatgpt.site/)
+
+The GitHub Pages deployment is still being debugged for cross-browser WebGL compatibility:
+[GitHub Pages version](https://nwadmark.github.io/inside-the-human-brain/)
+
+This is designed to be experienced, not skimmed: start the journey, turn on **Sound** and **Narration**, then use **Explore** to take control of the model.
 
 ## Start here
 
