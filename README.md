@@ -10,6 +10,19 @@ This interactive learning experience turns neuroscience into an explorable story
 
 This is designed to be experienced, not skimmed: start the journey, then use **Explore** to take control of the model.
 
+## Start here
+
+For the full experience, open the live site and:
+
+1. Turn **Sound** on for the ambient heartbeat and neural soundscape.
+2. Turn **Narration** on for documentary-style spoken guidance. Narration is separate from ambient sound.
+3. Keep **Captions** on if you prefer to read along or your browser does not support speech.
+4. Choose **Journey** for the guided cinematic path, or **Explore** to control the brain yourself.
+5. Drag to rotate, scroll or pinch to zoom, and use the tools to make structures transparent, isolate them, or show connections.
+6. Select a structure and ask: **Where is it? What does it do? Why should I care?**
+
+If narration does not begin immediately, click once inside the experience and toggle **Narration** off and on again; browsers require a user gesture before allowing speech.
+
 ## What this demonstrates
 
 - Product direction for an AI-native learning experience
