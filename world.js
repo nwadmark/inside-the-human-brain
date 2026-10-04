@@ -13,12 +13,44 @@ const mesh=(geo,material,pos,scale,parent)=>{const o=new THREE.Mesh(geo,material
 const sph=(pos,scale,color,parent,extra={})=>mesh(new THREE.SphereGeometry(1,28,20),mat(color,extra),pos,scale,parent);
 const curve=(pts,radius,color,parent,extra={})=>{const c=new THREE.CatmullRomCurve3(pts);const o=mesh(new THREE.TubeGeometry(c,Math.max(16,pts.length*7),radius,8,false),mat(color,extra),null,null,parent);o.userData.curve=c;return o;};
 
+class CanvasFallbackRenderer {
+ constructor(container){
+  this.domElement=document.createElement('canvas');
+  this.domElement.className='brain-fallback-canvas';
+  this.ctx=this.domElement.getContext('2d');
+  this.container=container;
+  this.angle=0;
+  this.setSize(container.clientWidth||window.innerWidth,container.clientHeight||window.innerHeight);
+ }
+ setPixelRatio(){}
+ setClearColor(){}
+ clearViewOffset(){}
+ setSize(w,h){this.domElement.width=Math.max(1,Math.floor(w));this.domElement.height=Math.max(1,Math.floor(h));this.domElement.style.width='100%';this.domElement.style.height='100%';}
+ render(){
+  const ctx=this.ctx,w=this.domElement.width,h=this.domElement.height;
+  if(!ctx)return;
+  this.angle+=.003;
+  ctx.fillStyle='#080b10';ctx.fillRect(0,0,w,h);
+  const cx=w*.63,cy=h*.48,rx=Math.min(w*.22,250),ry=Math.min(h*.29,290);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.sin(this.angle)*.035);
+  const grad=ctx.createRadialGradient(-rx*.25,-ry*.3,rx*.08,0,0,Math.max(rx,ry));
+  grad.addColorStop(0,'#f0d5c3');grad.addColorStop(.62,'#bc9d97');grad.addColorStop(1,'#704f58');
+  ctx.fillStyle=grad;ctx.strokeStyle='#e0b8a7';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(-rx*.22,0,rx*.72,ry,0,0,Math.PI*2);ctx.ellipse(rx*.22,0,rx*.72,ry,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.globalAlpha=.42;ctx.strokeStyle='#f3c7b4';ctx.lineWidth=3;
+  for(let i=-5;i<=5;i++){ctx.beginPath();ctx.moveTo(-rx*.7+i*rx*.08,-ry*.75);ctx.bezierCurveTo(-rx*.95+i*rx*.09,-ry*.25, -rx*.5+i*rx*.13,ry*.05, -rx*.74+i*rx*.1,ry*.72);ctx.stroke();ctx.beginPath();ctx.moveTo(rx*.7-i*rx*.08,-ry*.75);ctx.bezierCurveTo(rx*.95-i*rx*.09,-ry*.25, rx*.5-i*rx*.13,ry*.05, rx*.74-i*rx*.1,ry*.72);ctx.stroke();}
+  ctx.globalAlpha=.8;ctx.strokeStyle='#d9b06f';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-ry*.78);ctx.lineTo(0,ry*.78);ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='#d9b06f';ctx.font='12px sans-serif';ctx.letterSpacing='2px';ctx.fillText('VISUAL COMPATIBILITY MODE',cx-rx*.72,h*.86);
+ }
+}
+
 export class BrainWorld{
  constructor(container,callbacks={}){
   this.container=container;this.callbacks=callbacks;this.time=0;this.view='brain';this.focus=[];this.labels=[];this.meshes=[];this.xray=false;this.exploded=false;this.isolated=false;this.connections=false;this.section=false;this.playing=true;this.rotating=true;this.reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;this.speed=1000;this.myelinated=true;this.signalStart=-100;this.synapseStart=-100;this.neuroColor='#e4ba73';
   this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#080b10');this.scene.fog=new THREE.FogExp2('#080b10',.023);
   this.camera=new THREE.PerspectiveCamera(34,1,.01,160);this.camera.position.set(7,2.8,6.7);
-  try{this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'default',failIfMajorPerformanceCaveat:false});}catch(primary){this.renderer=new THREE.WebGLRenderer({antialias:false,alpha:true,powerPreference:'default',failIfMajorPerformanceCaveat:false});}this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));this.renderer.setClearColor('#080b10');this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.2;this.renderer.localClippingEnabled=true;container.append(this.renderer.domElement);
+  try{this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'default',failIfMajorPerformanceCaveat:false});}catch(primary){console.warn('WebGL unavailable; using canvas compatibility mode.',primary);this.renderer=new CanvasFallbackRenderer(container);}this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));this.renderer.setClearColor('#080b10');this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.2;this.renderer.localClippingEnabled=true;container.append(this.renderer.domElement);
   this.renderer.domElement.setAttribute('aria-label','3D brain: drag to rotate, pinch or scroll to zoom, right-drag or two-finger drag to pan. Structure selection is also available in the text index.');this.renderer.domElement.setAttribute('role','img');
   this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.enableDamping=true;this.controls.dampingFactor=.075;this.controls.minDistance=1;this.controls.maxDistance=70;this.controls.enablePan=true;this.controls.rotateSpeed=.55;this.controls.zoomSpeed=.6;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.22;this.controls.target.set(0,-.15,-.15);
   this.controls.addEventListener('start',()=>{this.flight=null;this.rotating=false;this.callbacks.interact?.();});
