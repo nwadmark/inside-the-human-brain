@@ -63,12 +63,24 @@ export class BrainWorld{
   this.clock=new THREE.Clock();this._loop=()=>{this.frame();this.frameId=requestAnimationFrame(this._loop);};this._loop();
  }
  async load(){
-  const fetchMesh=async url=>{const r=await fetch(url);if(!r.ok)throw new Error('Anatomy asset could not be loaded.');return r.json();};
-  const [cortex,subcortex]=await Promise.all([fetchMesh('assets/cortex-fsaverage5.json'),fetchMesh('assets/subcortex-fsaverage.json')]);
-  this.buildCortex(cortex);this.buildSubcortex(subcortex);this.buildSupportingAnatomy();this.buildNeuron();this.buildSynapse();this.buildGlia();this.buildCircuit();this.buildHuman();this.setView('brain',[],true);
+  const fetchMesh=async url=>{const r=await fetch(url);if(!r.ok)throw new Error('Anatomy asset could not be loaded.');const text=await r.text();if(!text.trim().startsWith('{'))throw new Error('Anatomy asset is not valid JSON.');return JSON.parse(text);};
+  let cortex=null,subcortex=null;
+  try{[cortex,subcortex]=await Promise.all([fetchMesh('assets/cortex-fsaverage5.json'),fetchMesh('assets/subcortex-fsaverage.json')]);}
+  catch(error){console.warn('Research anatomy unavailable; using procedural teaching model.',error);}
+  if(cortex)this.buildCortex(cortex);else this.buildFallbackCortex();
+  if(subcortex)this.buildSubcortex(subcortex);
+  this.buildSupportingAnatomy();this.buildNeuron();this.buildSynapse();this.buildGlia();this.buildCircuit();this.buildHuman();this.setView('brain',[],true);
  }
  geometry(raw){const positions=new Float32Array(raw.positions.length);for(let i=0;i<positions.length;i+=3){positions[i]=raw.positions[i]/50;positions[i+1]=(raw.positions[i+2]-15)/50;positions[i+2]=raw.positions[i+1]/50;}const ix=new Uint32Array(raw.indices.length);for(let i=0;i<ix.length;i+=3){ix[i]=raw.indices[i];ix[i+1]=raw.indices[i+2];ix[i+2]=raw.indices[i+1];}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(positions,3));g.setIndex(new THREE.BufferAttribute(ix,1));g.computeVertexNormals();return g;}
  register(o,id,kind='deep',side=null){o.userData.id=id;o.userData.kind=kind;o.userData.side=side;o.userData.baseColor=o.material.color.clone();o.userData.opacity=1;o.userData.originalPosition=o.position.clone();this.meshes.push(o);return o;}
+ buildFallbackCortex(){
+  for(const side of [-1,1]){
+   const root=side<0?this.hemi.left:this.hemi.right;
+   const lobes=[['frontal',[-.48,.18,.02],[.72,.9,.78]],['parietal',[-.18,.65,-.02],[.72,.72,.8]],['temporal',[-.2,-.35,.12],[.78,.48,.68]],['occipital',[.28,.25,-.03],[.58,.72,.7]]];
+   for(const[id,pos,scale]of lobes){const o=sph(V(side*(pos[0]+.16),pos[1],pos[2]),V(...scale.map(x=>x)),STRUCTURES[id]?.color||'#ceaea0',root,{transparent:true,opacity:.92});o.userData.id=id;o.userData.kind='cortex';o.userData.side=side<0?'left':'right';o.userData.baseColor=o.material.color.clone();o.userData.opacity=1;this.meshes.push(o);}
+   for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const p=V(side*(.46+.12*Math.cos(a)),.12+.72*Math.sin(a),.02);curve([p,V(p.x+side*.08,p.y+.13,p.z+.06),V(p.x-side*.04,p.y+.25,p.z-.04)],.018,'#e4b8a8',root,{transparent:true,opacity:.55});}
+  }
+ } 
  buildCortex(data){
   this.surfaceData={};for(const side of ['left','right']){
    const d=data.hemispheres[side],base=this.geometry(d),grouped={};this.surfaceData[side]={position:base.attributes.position,normal:base.attributes.normal};
