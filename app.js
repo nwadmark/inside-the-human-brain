@@ -1,5 +1,5 @@
 import {BrainWorld} from './world.js?v=9';
-import {Soundscape} from './audio.js?v=2';
+import {Soundscape} from './audio.js?v=3';
 import {CHAPTERS,STRUCTURES,SOURCES,TRANSMITTERS,NETWORKS,EXPERIENCES,WHATIFS,SURPRISES,SEARCH_SYSTEMS} from './content.js';
 
 const $=s=>document.querySelector(s);
